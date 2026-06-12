@@ -1,7 +1,7 @@
 from extractingFeatures import *
 import os
 import math
-import sklearn
+from sklearn import neighbors,svm,tree,naive_bayes
 import numpy as np
 
 TRAINING_PERCENTAGE=0.8
@@ -70,7 +70,7 @@ def extract_features(file_path):
     return features
 
 def train_knn(num_neighbors,traindata,traintargets):
-    knn=sklearn.neighbors.KNeighborsClassifier(n_neighbors=num_neighbors)
+    knn=neighbors.KNeighborsClassifier(n_neighbors=num_neighbors)
     knn.fit(traindata,traintargets)
     return knn
 
@@ -80,9 +80,9 @@ def test_knn(knn,testdata,testtargets):
     print("KNN Accuracy: ", np.mean(pr==trueClasses))
     return np.mean(pr==trueClasses)
 
-def classify_data(knn,file_path):
+def classify_data(model,file_path):
     data=[extract_features(file_path)]
-    pr=knn.predict(data)
+    pr=model.predict(data)
     return pr
 
 def split_data(training_percentage,alldata,alltargets,num_men,num_women):
@@ -129,7 +129,7 @@ def get_best_k(traindata,traintargets,testdata,testtargets, max_k):
     return best_k,best_acc
 
 def train_decision_tree(traindata,traintargets):
-    dt=sklearn.tree.DecisionTreeClassifier(criterion="entropy")
+    dt=tree.DecisionTreeClassifier(criterion="entropy")
     dt.fit(traindata,traintargets)
     return dt
 
@@ -140,7 +140,7 @@ def test_decision_tree(dt,testdata,testtargets):
     return np.mean(pr==trueClasses)
 
 def train_naive_bayes(traindata,traintargets):
-    nb=sklearn.naive_bayes.GaussianNB()
+    nb=naive_bayes.GaussianNB()
     nb.fit(traindata,traintargets)
     return nb
 
@@ -148,6 +148,17 @@ def test_naive_bayes(nb, testdata, testtargets):
     pr=nb.predict(testdata)
     trueClasses=np.array(testtargets)
     print("NB Accuracy: ", np.mean(pr==trueClasses))
+    return np.mean(pr==trueClasses)
+
+def train_SVM(traindata,traintargets):
+    svm_model=svm.SVC()
+    svm_model.fit(traindata,traintargets)
+    return svm_model
+
+def test_SVM(svm_model,testdata,testtargets):
+    pr=svm_model.predict(testdata)
+    trueClasses=np.array(testtargets)
+    print("SVM Accuracy: ", np.mean(pr==trueClasses))
     return np.mean(pr==trueClasses)
 
 alldata,alltargets,num_men,num_women=setup_data(DATASET_PATH)
@@ -163,4 +174,5 @@ dt_acc=test_decision_tree(dt,testdata,testtargets)
 nb=train_naive_bayes(traindata,traintargets)
 nb_acc=test_naive_bayes(nb,testdata,testtargets)
 
-
+svm_model=train_SVM(traindata,traintargets)
+svm_acc=test_SVM(svm_model,testdata,testtargets)

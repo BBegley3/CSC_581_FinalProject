@@ -139,16 +139,29 @@ def test_decision_tree(dt,testdata,testtargets):
     print("DT Accuracy: ", np.mean(pr==trueClasses))
     return np.mean(pr==trueClasses)
 
+def train_naive_bayes(traindata,traintargets):
+    nb=sklearn.naive_bayes.GaussianNB()
+    nb.fit(traindata,traintargets)
+    return nb
+
+def test_naive_bayes(nb, testdata, testtargets):
+    pr=nb.predict(testdata)
+    trueClasses=np.array(testtargets)
+    print("NB Accuracy: ", np.mean(pr==trueClasses))
+    return np.mean(pr==trueClasses)
+
 alldata,alltargets,num_men,num_women=setup_data(DATASET_PATH)
 traindata,traintargets,testdata,testtargets=split_data(TRAINING_PERCENTAGE,alldata,alltargets,num_men,num_women)
 best_k,best_acc=get_best_k(traindata,traintargets,testdata,testtargets, math.floor((num_men+num_women)*TRAINING_PERCENTAGE)-1)
 traindata,traintargets,testdata,testtargets=split_data(TRAINING_PERCENTAGE,alldata,alltargets,num_men,num_women)
 
 knn=train_knn(best_k,traindata,traintargets)
-test_knn(knn,testdata,testtargets)
+knn_acc=test_knn(knn,testdata,testtargets)
 
 dt=train_decision_tree(traindata,traintargets)
-test_decision_tree(dt,testdata,testtargets)
+dt_acc=test_decision_tree(dt,testdata,testtargets)
 
+nb=train_naive_bayes(traindata,traintargets)
+nb_acc=test_naive_bayes(nb,testdata,testtargets)
 
 

@@ -81,7 +81,7 @@ def test_knn(knn,testdata,testtargets):
     return np.mean(pr==trueClasses)
 
 def classify_data(knn,file_path):
-    data=extract_features(file_path)
+    data=[extract_features(file_path)]
     pr=knn.predict(data)
     return pr
 
@@ -152,8 +152,7 @@ def test_naive_bayes(nb, testdata, testtargets):
 
 alldata,alltargets,num_men,num_women=setup_data(DATASET_PATH)
 traindata,traintargets,testdata,testtargets=split_data(TRAINING_PERCENTAGE,alldata,alltargets,num_men,num_women)
-best_k,best_acc=get_best_k(traindata,traintargets,testdata,testtargets, math.floor((num_men+num_women)*TRAINING_PERCENTAGE)-1)
-traindata,traintargets,testdata,testtargets=split_data(TRAINING_PERCENTAGE,alldata,alltargets,num_men,num_women)
+best_k,best_acc=get_best_k(traindata,traintargets,testdata,testtargets, math.floor(math.sqrt(num_men+num_women)))
 
 knn=train_knn(best_k,traindata,traintargets)
 knn_acc=test_knn(knn,testdata,testtargets)

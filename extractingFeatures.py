@@ -37,3 +37,13 @@ def eyebrow_length_ratio(p4,p5,p6,p7,p8,p13):
 
 def aggresive_ratio(p10,p19,p20,p21):
     return euclidean_distance(p10,p19)/euclidean_distance(p20,p21)
+
+def jaw_nose_width_ratio(p15,p16,p20,p21):
+    return euclidean_distance(p15,p16)/euclidean_distance(p20,p21)
+
+def jaw_mouth_width_ratio(p2,p3,p20,p21):
+    return euclidean_distance(p2,p3)/euclidean_distance(p20,p21)
+
+def jaw_eye_ratio(p9,p10,p11,p12,p20,p21):
+    eye_len=min(euclidean_distance(p9,p10),euclidean_distance(p11,p12))
+    return eye_len/euclidean_distance(p20,p21)

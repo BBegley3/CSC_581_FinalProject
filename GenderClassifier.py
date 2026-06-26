@@ -1,8 +1,9 @@
 from extractingFeatures import *
 import os
 import math
-from sklearn import neighbors,svm,tree,naive_bayes
+from sklearn import neighbors,svm,tree,naive_bayes,neural_network, preprocessing, model_selection
 import numpy as np
+from Manual_ANN import train_nn,test_nn
 
 TRAINING_PERCENTAGE=0.8
 DATASET_PATH="dataset"
@@ -67,6 +68,9 @@ def extract_features(file_path):
     features.append(lip_length_ratio(p2,p3,p20,p21))
     features.append(eyebrow_length_ratio(p4,p5,p6,p7,p8,p13))
     features.append(aggresive_ratio(p10,p19,p20,p21))
+    features.append(jaw_nose_width_ratio(p15,p16,p20,p21))
+    features.append(jaw_mouth_width_ratio(p2,p3,p20,p21))
+    features.append(jaw_eye_ratio(p9,p10,p11,p12,p20,p21))
     return features
 
 def train_knn(num_neighbors,traindata,traintargets):
@@ -77,7 +81,7 @@ def train_knn(num_neighbors,traindata,traintargets):
 def test_knn(knn,testdata,testtargets):
     pr=knn.predict(testdata)
     trueClasses=np.array(testtargets)
-    print("KNN Accuracy: ", np.mean(pr==trueClasses))
+    # print("KNN Accuracy: ", np.mean(pr==trueClasses))
     return np.mean(pr==trueClasses)
 
 def classify_data(model,file_path):
@@ -118,14 +122,14 @@ def get_best_k(traindata,traintargets,testdata,testtargets, max_k):
 
     for i in range(1,max_k+1):
         knn=train_knn(i,traindata,traintargets)
-        print("K: ", i)
+        # print("K: ", i)
         curr_acc=test_knn(knn,testdata,testtargets)
         if curr_acc>=best_acc:
             best_acc=curr_acc
             best_k=i
 
     print("Best K: ", best_k)
-    print("Best Accuracy: ", best_acc)
+    # print("Best Accuracy: ", best_acc)
     return best_k,best_acc
 
 def train_decision_tree(traindata,traintargets):
@@ -136,7 +140,7 @@ def train_decision_tree(traindata,traintargets):
 def test_decision_tree(dt,testdata,testtargets):
     pr=dt.predict(testdata)
     trueClasses=np.array(testtargets)
-    print("DT Accuracy: ", np.mean(pr==trueClasses))
+    # print("DT Accuracy: ", np.mean(pr==trueClasses))
     return np.mean(pr==trueClasses)
 
 def train_naive_bayes(traindata,traintargets):
@@ -147,23 +151,102 @@ def train_naive_bayes(traindata,traintargets):
 def test_naive_bayes(nb, testdata, testtargets):
     pr=nb.predict(testdata)
     trueClasses=np.array(testtargets)
-    print("NB Accuracy: ", np.mean(pr==trueClasses))
+    # print("NB Accuracy: ", np.mean(pr==trueClasses))
     return np.mean(pr==trueClasses)
 
 def train_SVM(traindata,traintargets):
-    svm_model=svm.SVC()
+    svm_model=svm.SVC(kernel="linear")
     svm_model.fit(traindata,traintargets)
     return svm_model
 
 def test_SVM(svm_model,testdata,testtargets):
     pr=svm_model.predict(testdata)
     trueClasses=np.array(testtargets)
-    print("SVM Accuracy: ", np.mean(pr==trueClasses))
+    # print("SVM Accuracy: ", np.mean(pr==trueClasses))
     return np.mean(pr==trueClasses)
+
+def train_sk_nn(traindata,traintargets,hidden_layers,a,lr):
+    nn=neural_network.MLPClassifier(activation="logistic", alpha=a, learning_rate_init=lr, max_iter=200000, hidden_layer_sizes=hidden_layers)
+    nn.fit(traindata,traintargets)
+    return nn
+
+def test_sk_nn(nn,testdata,testtargets):
+    pr=nn.predict(testdata)
+    trueClasses=np.array(testtargets)
+    # print("NN Accuracy: ", np.mean(pr==trueClasses))
+    return np.mean(pr==trueClasses)
+
+def find_best_nn_layers(traindata,traintargets,testdata,testtargets, a, lr, num_layers):
+    best_acc=0
+    trueClasses=np.array(testtargets)
+    if num_layers==1:
+        for i in range(1,76):
+            model=neural_network.MLPClassifier(max_iter=10000,activation="logistic", random_state=3, alpha=a, learning_rate_init=lr, hidden_layer_sizes=(i,))
+            model.fit(traindata,traintargets)
+            pr=model.predict(testdata)
+            curr_acc=np.mean(pr==trueClasses)
+            if curr_acc>=best_acc:
+                best_acc=curr_acc
+                best_hidden_layers=(i,)   
+    if num_layers==2:
+        for i in range(1,76):
+            for j in range(1,76):
+                model=neural_network.MLPClassifier(max_iter=10000,activation="logistic", random_state=3, alpha=a, learning_rate_init=lr, hidden_layer_sizes=(i,j))
+                model.fit(traindata,traintargets)
+                pr=model.predict(testdata)
+                curr_acc=np.mean(pr==trueClasses)
+                if curr_acc>=best_acc:
+                    best_acc=curr_acc
+                    best_hidden_layers=(i,j)   
+  
+    if num_layers==3:
+        for i in range(1,76):
+            for j in range(1,76):
+                for k in range(1,76):
+                    model=neural_network.MLPClassifier(max_iter=10000,activation="logistic", random_state=3, alpha=a, learning_rate_init=lr, hidden_layer_sizes=(i,j,k))
+                    model.fit(traindata,traintargets)
+                    pr=model.predict(testdata)
+                    curr_acc=np.mean(pr==trueClasses)
+                    if curr_acc>=best_acc:
+                        best_acc=curr_acc
+                        best_hidden_layers=(i,j,k)
+    print(best_hidden_layers)
+    print(best_acc)
+    return best_hidden_layers
+
+def find_best_alpha_and_learning_rate_init(traindata,traintargets,testdata,testtargets, hidden_layers):
+    a=0.05
+    init_learn_rate=0.005
+    best_acc=0
+    trueClasses=np.array(testtargets)
+    for i in range(1,11):
+        for j in range(1,16):
+            model=neural_network.MLPClassifier(max_iter=10000,activation="logistic", random_state=3, alpha=a, learning_rate_init=init_learn_rate, hidden_layer_sizes=hidden_layers)
+            model.fit(traindata,traintargets)
+            pr=model.predict(testdata)
+            curr_acc=np.mean(pr==trueClasses)
+            if curr_acc>=best_acc:
+                best_acc=curr_acc
+                best_alpha=a
+                best_learn_r=init_learn_rate
+            a=0.05+(0.01*i)
+            init_learn_rate=0.005+(0.001*j)
+    print(best_alpha,best_learn_r)
+    print(best_acc)
+    return best_alpha,best_learn_r
+
+
+
 
 alldata,alltargets,num_men,num_women=setup_data(DATASET_PATH)
 traindata,traintargets,testdata,testtargets=split_data(TRAINING_PERCENTAGE,alldata,alltargets,num_men,num_women)
-best_k,best_acc=get_best_k(traindata,traintargets,testdata,testtargets, math.floor(math.sqrt(num_men+num_women)))
+
+
+scaler=preprocessing.StandardScaler()
+traindata=scaler.fit_transform(traindata)
+testdata=scaler.transform(testdata)
+
+best_k,best_acc=get_best_k(traindata,traintargets,testdata,testtargets, math.floor((num_men+num_women)/4))
 
 knn=train_knn(best_k,traindata,traintargets)
 knn_acc=test_knn(knn,testdata,testtargets)
@@ -176,3 +259,38 @@ nb_acc=test_naive_bayes(nb,testdata,testtargets)
 
 svm_model=train_SVM(traindata,traintargets)
 svm_acc=test_SVM(svm_model,testdata,testtargets)
+
+n_layers=1
+a1=0.06
+lr1=0.018
+a2=0
+lr2=0
+
+while(a1!=a2 and lr1!=lr2):
+    a2=a1
+    lr2=lr1
+    layers=find_best_nn_layers(traindata,traintargets,testdata,testtargets,a2,lr2,n_layers)
+    a1,lr1=find_best_alpha_and_learning_rate_init(traindata,traintargets,testdata,testtargets,layers)
+
+a2,lr2=a1,lr1
+layers=find_best_nn_layers(traindata,traintargets,testdata,testtargets,a1,lr1,n_layers)
+a2,lr2=find_best_alpha_and_learning_rate_init(traindata,traintargets,testdata,testtargets,layers)
+if n_layers==3:
+    l1,l2,l3=layers[0],layers[1],layers[2]
+    mnn_layers=[10,l1,l2,l3,1]
+if n_layers==2:
+    l1,l2=layers[0],layers[1]  
+    mnn_layers=[10,l1,l2,1]
+if n_layers==1:
+    l1=layers[0]
+    mnn_layers=[10,l1,1]
+nn_model=train_sk_nn(traindata,traintargets, layers, a2, lr2)
+nn_acc=test_sk_nn(nn_model,testdata,testtargets)
+
+mnn_max_iters=100000
+mnn_init_learning_rate=lr2
+mnn_learning_rate_multiplier=0.99
+
+model_weights,model_biases=train_nn(mnn_max_iters,mnn_init_learning_rate,mnn_learning_rate_multiplier,mnn_layers,traindata,traintargets)
+mnn_acc=test_nn(model_weights,model_biases,testdata,testtargets)
+print(" KNN Accuracy: ",knn_acc,"\n DT Accuracy: ", dt_acc, "\n NB Accuracy: ", nb_acc,"\n SVM Accuracy: ",svm_acc,"\n SKLearn NN Accuracy: ",nn_acc,"\n Manual NN Accuracy: ", mnn_acc)

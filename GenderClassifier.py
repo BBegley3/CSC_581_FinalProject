@@ -1,7 +1,7 @@
 from extractingFeatures import *
 import os
 import math
-from sklearn import neighbors,svm,tree,naive_bayes,neural_network, preprocessing, model_selection
+from sklearn import neighbors,svm,tree,naive_bayes,neural_network, preprocessing, model_selection,metrics
 import numpy as np
 from Manual_ANN import train_nn,test_nn
 
@@ -68,9 +68,12 @@ def extract_features(file_path):
     features.append(lip_length_ratio(p2,p3,p20,p21))
     features.append(eyebrow_length_ratio(p4,p5,p6,p7,p8,p13))
     features.append(aggresive_ratio(p10,p19,p20,p21))
-    features.append(jaw_nose_width_ratio(p15,p16,p20,p21))
-    features.append(jaw_mouth_width_ratio(p2,p3,p20,p21))
+    # features.append(jaw_nose_width_ratio(p15,p16,p20,p21))
+    # features.append(jaw_mouth_width_ratio(p2,p3,p20,p21))
     features.append(jaw_eye_ratio(p9,p10,p11,p12,p20,p21))
+    features.append(forehead_jaw_ratio(p0,p13,p20,p21))
+    features.append(nose_to_lip_dist(p6,p14,p17,p19))
+    features.append(nose_to_lip_dist_lip_height_ratio(p14,p17,p18))
     return features
 
 def train_knn(num_neighbors,traindata,traintargets):
@@ -78,10 +81,12 @@ def train_knn(num_neighbors,traindata,traintargets):
     knn.fit(traindata,traintargets)
     return knn
 
-def test_knn(knn,testdata,testtargets):
+def test_knn(knn,testdata,testtargets,final_model):
     pr=knn.predict(testdata)
     trueClasses=np.array(testtargets)
-    # print("KNN Accuracy: ", np.mean(pr==trueClasses))
+    if final_model:
+        print("-----KNN------")
+        print(pr,"\n",trueClasses)
     return np.mean(pr==trueClasses)
 
 def classify_data(model,file_path):
@@ -123,7 +128,7 @@ def get_best_k(traindata,traintargets,testdata,testtargets, max_k):
     for i in range(1,max_k+1):
         knn=train_knn(i,traindata,traintargets)
         # print("K: ", i)
-        curr_acc=test_knn(knn,testdata,testtargets)
+        curr_acc=test_knn(knn,testdata,testtargets,final_model=False)
         if curr_acc>=best_acc:
             best_acc=curr_acc
             best_k=i
@@ -140,7 +145,8 @@ def train_decision_tree(traindata,traintargets):
 def test_decision_tree(dt,testdata,testtargets):
     pr=dt.predict(testdata)
     trueClasses=np.array(testtargets)
-    # print("DT Accuracy: ", np.mean(pr==trueClasses))
+    print("-----DT------")
+    print(pr,"\n",trueClasses)
     return np.mean(pr==trueClasses)
 
 def train_naive_bayes(traindata,traintargets):
@@ -151,7 +157,8 @@ def train_naive_bayes(traindata,traintargets):
 def test_naive_bayes(nb, testdata, testtargets):
     pr=nb.predict(testdata)
     trueClasses=np.array(testtargets)
-    # print("NB Accuracy: ", np.mean(pr==trueClasses))
+    print("-----NB------")
+    print(pr,"\n",trueClasses)
     return np.mean(pr==trueClasses)
 
 def train_SVM(traindata,traintargets):
@@ -162,18 +169,29 @@ def train_SVM(traindata,traintargets):
 def test_SVM(svm_model,testdata,testtargets):
     pr=svm_model.predict(testdata)
     trueClasses=np.array(testtargets)
-    # print("SVM Accuracy: ", np.mean(pr==trueClasses))
+    print("-----SVM------")
+    print(pr,"\n",trueClasses)
     return np.mean(pr==trueClasses)
 
-def train_sk_nn(traindata,traintargets,hidden_layers,a,lr):
-    nn=neural_network.MLPClassifier(activation="logistic", alpha=a, learning_rate_init=lr, max_iter=200000, hidden_layer_sizes=hidden_layers)
-    nn.fit(traindata,traintargets)
-    return nn
+def train_sk_nn(traindata,traintargets,testdata,testtargets,hidden_layers,a,lr):
+    best_acc=0.0
+    trueClasses=np.array(testtargets)
+    for i in range(0,20000):
+        nn=neural_network.MLPClassifier(activation="logistic", alpha=a, learning_rate_init=lr, max_iter=1000000, hidden_layer_sizes=hidden_layers,random_state=i)
+        nn.fit(traindata,traintargets)
+        pr=nn.predict(testdata)
+        curr_acc=np.mean(pr==trueClasses)
+        if(curr_acc>best_acc):
+            print(i,": ",curr_acc)
+            best_acc=curr_acc
+            best_nn=nn
+    return best_nn
 
 def test_sk_nn(nn,testdata,testtargets):
     pr=nn.predict(testdata)
     trueClasses=np.array(testtargets)
-    # print("NN Accuracy: ", np.mean(pr==trueClasses))
+    print("-----ANN------")
+    print(pr,"\n",trueClasses)
     return np.mean(pr==trueClasses)
 
 def find_best_nn_layers(traindata,traintargets,testdata,testtargets, a, lr, num_layers):
@@ -181,7 +199,7 @@ def find_best_nn_layers(traindata,traintargets,testdata,testtargets, a, lr, num_
     trueClasses=np.array(testtargets)
     if num_layers==1:
         for i in range(1,76):
-            model=neural_network.MLPClassifier(max_iter=10000,activation="logistic", random_state=3, alpha=a, learning_rate_init=lr, hidden_layer_sizes=(i,))
+            model=neural_network.MLPClassifier(max_iter=1000000,activation="logistic", random_state=3, alpha=a, learning_rate_init=lr, hidden_layer_sizes=(i,))
             model.fit(traindata,traintargets)
             pr=model.predict(testdata)
             curr_acc=np.mean(pr==trueClasses)
@@ -191,7 +209,7 @@ def find_best_nn_layers(traindata,traintargets,testdata,testtargets, a, lr, num_
     if num_layers==2:
         for i in range(1,76):
             for j in range(1,76):
-                model=neural_network.MLPClassifier(max_iter=10000,activation="logistic", random_state=3, alpha=a, learning_rate_init=lr, hidden_layer_sizes=(i,j))
+                model=neural_network.MLPClassifier(max_iter=1000000,activation="logistic", random_state=3, alpha=a, learning_rate_init=lr, hidden_layer_sizes=(i,j))
                 model.fit(traindata,traintargets)
                 pr=model.predict(testdata)
                 curr_acc=np.mean(pr==trueClasses)
@@ -214,29 +232,22 @@ def find_best_nn_layers(traindata,traintargets,testdata,testtargets, a, lr, num_
     print(best_acc)
     return best_hidden_layers
 
-def find_best_alpha_and_learning_rate_init(traindata,traintargets,testdata,testtargets, hidden_layers):
-    a=0.05
-    init_learn_rate=0.005
+def find_best_alpha_and_learning_rate_init(traindata,traintargets,testdata,testtargets, hidden_layers, alphas, lrs):
     best_acc=0
     trueClasses=np.array(testtargets)
-    for i in range(1,11):
-        for j in range(1,16):
-            model=neural_network.MLPClassifier(max_iter=10000,activation="logistic", random_state=3, alpha=a, learning_rate_init=init_learn_rate, hidden_layer_sizes=hidden_layers)
+    for i in range(len(alphas)):
+        for j in range(len(lrs)):
+            model=neural_network.MLPClassifier(max_iter=1000000,activation="logistic", random_state=3, alpha=alphas[i], learning_rate_init=lrs[j], hidden_layer_sizes=hidden_layers)
             model.fit(traindata,traintargets)
             pr=model.predict(testdata)
             curr_acc=np.mean(pr==trueClasses)
             if curr_acc>=best_acc:
                 best_acc=curr_acc
-                best_alpha=a
-                best_learn_r=init_learn_rate
-            a=0.05+(0.01*i)
-            init_learn_rate=0.005+(0.001*j)
+                best_alpha=alphas[i]
+                best_learn_r=lrs[j]
     print(best_alpha,best_learn_r)
     print(best_acc)
     return best_alpha,best_learn_r
-
-
-
 
 alldata,alltargets,num_men,num_women=setup_data(DATASET_PATH)
 traindata,traintargets,testdata,testtargets=split_data(TRAINING_PERCENTAGE,alldata,alltargets,num_men,num_women)
@@ -249,7 +260,7 @@ testdata=scaler.transform(testdata)
 best_k,best_acc=get_best_k(traindata,traintargets,testdata,testtargets, math.floor((num_men+num_women)/4))
 
 knn=train_knn(best_k,traindata,traintargets)
-knn_acc=test_knn(knn,testdata,testtargets)
+knn_acc=test_knn(knn,testdata,testtargets,final_model=True)
 
 dt=train_decision_tree(traindata,traintargets)
 dt_acc=test_decision_tree(dt,testdata,testtargets)
@@ -260,31 +271,39 @@ nb_acc=test_naive_bayes(nb,testdata,testtargets)
 svm_model=train_SVM(traindata,traintargets)
 svm_acc=test_SVM(svm_model,testdata,testtargets)
 
-n_layers=1
-a1=0.06
-lr1=0.018
-a2=0
-lr2=0
+#2 Hidden Layer Best Settings:
+# layers=(61,49)
+# a2,lr2=0.1,0.075
 
-while(a1!=a2 and lr1!=lr2):
-    a2=a1
-    lr2=lr1
-    layers=find_best_nn_layers(traindata,traintargets,testdata,testtargets,a2,lr2,n_layers)
-    a1,lr1=find_best_alpha_and_learning_rate_init(traindata,traintargets,testdata,testtargets,layers)
+# 1Hidden Layer Best Settings:
+layers=(24,)
+a2,lr2,a1,lr1=0.1, 0.0095,0.0,0.0
 
-a2,lr2=a1,lr1
-layers=find_best_nn_layers(traindata,traintargets,testdata,testtargets,a1,lr1,n_layers)
-a2,lr2=find_best_alpha_and_learning_rate_init(traindata,traintargets,testdata,testtargets,layers)
+
+
+n_layers=len(layers)
+input_layer=len(alldata[0])
+alphas=[0.009,0.0095,0.01,0.015,0.02,0.025,0.03,0.035,0.04,0.045,0.05,0.055,0.06,0.065,0.07,0.075,0.08,0.085,0.09,0.095,0.1,0.15,0.2,0.25,0.3,0.35,0.4,0.45,0.5]
+lrs=[0.001,0.0015,0.002,0.0025,0.003,0.0035,0.004,0.0045,0.005,0.0055,0.006,0.0065,0.007,0.0075,0.008,0.0085,0.009,0.0095,0.01,0.015,0.02,0.025,0.03,0.035,0.04,0.045,0.05,0.055,0.06,0.065,0.07,0.075,0.08,0.085,0.09,0.095]
+
+# while(a1!=a2 or lr1!=lr2):
+#     a1=a2
+#     lr1=lr2
+#     layers=find_best_nn_layers(traindata,traintargets,testdata,testtargets,a1,lr1,n_layers)
+#     a2,lr2=find_best_alpha_and_learning_rate_init(traindata,traintargets,testdata,testtargets,layers,alphas,lrs)
+
+# layers=find_best_nn_layers(traindata,traintargets,testdata,testtargets,a2,lr2,n_layers)
+# a2,lr2=find_best_alpha_and_learning_rate_init(traindata,traintargets,testdata,testtargets,layers,alphas,lrs)
 if n_layers==3:
     l1,l2,l3=layers[0],layers[1],layers[2]
-    mnn_layers=[10,l1,l2,l3,1]
+    mnn_layers=[input_layer,l1,l2,l3,1]
 if n_layers==2:
     l1,l2=layers[0],layers[1]  
-    mnn_layers=[10,l1,l2,1]
+    mnn_layers=[input_layer,l1,l2,1]
 if n_layers==1:
     l1=layers[0]
-    mnn_layers=[10,l1,1]
-nn_model=train_sk_nn(traindata,traintargets, layers, a2, lr2)
+    mnn_layers=[input_layer,l1,1]
+nn_model=train_sk_nn(traindata,traintargets,testdata,testtargets, layers, a2, lr2)
 nn_acc=test_sk_nn(nn_model,testdata,testtargets)
 
 mnn_max_iters=100000

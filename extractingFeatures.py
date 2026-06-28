@@ -47,3 +47,13 @@ def jaw_mouth_width_ratio(p2,p3,p20,p21):
 def jaw_eye_ratio(p9,p10,p11,p12,p20,p21):
     eye_len=min(euclidean_distance(p9,p10),euclidean_distance(p11,p12))
     return eye_len/euclidean_distance(p20,p21)
+
+def forehead_jaw_ratio(p0,p13,p20,p21):
+    return euclidean_distance(p0,p13)/euclidean_distance(p20,p21)
+
+def nose_to_lip_dist(p6,p14,p17,p19):
+    return euclidean_distance(p14,p17)/euclidean_distance(p6,p19)
+
+def nose_to_lip_dist_lip_height_ratio(p14,p17,p18):
+    return euclidean_distance(p14,p17)/euclidean_distance(p17,p18)
+    

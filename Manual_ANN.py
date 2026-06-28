@@ -14,6 +14,8 @@ def test_nn(weights,biases,testdata,testtargets):
     predicted_classes=[1 if prediction >=0.5 else 0 for prediction in predictions]
     predicted_classes=np.array(predicted_classes)
     correct_predictions=np.sum(predicted_classes==testtargets.flatten())
+    print("-----Manual ANN------")
+    print(predicted_classes,"\n", testtargets.flatten())
     accuracy=((correct_predictions/len(testtargets))*100)
     return accuracy
 

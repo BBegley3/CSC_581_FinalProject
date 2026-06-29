@@ -3,3 +3,4 @@ venv/
 __pycache__/
 .DS_Store
 CSC_581_FinalProject.code-workspace
+feature_values_report.csv

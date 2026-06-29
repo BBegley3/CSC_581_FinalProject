@@ -31,6 +31,7 @@ def setup_data(dataset_path=DATASET_PATH):
                     elif file.startswith("w"):
                         alltargets.append(1)
                         num_women+=1
+    print(num_men,num_women,num_men+num_women)
     return alldata,alltargets,num_men,num_women,allfilenames
 
 FEATURE_NAMES = [
@@ -97,9 +98,10 @@ def extract_features(file_path):
     # features.append(jaw_nose_width_ratio(p15,p16,p20,p21))
     # features.append(jaw_mouth_width_ratio(p2,p3,p20,p21))
     features.append(jaw_eye_ratio(p9,p10,p11,p12,p20,p21))
-    features.append(forehead_jaw_ratio(p0,p13,p20,p21))
+    features.append(eye_dist_jaw_ratio(p0,p1,p20,p21))
+    features.append(forehead_jaw_ratio(p8,p13,p20,p21))
     features.append(nose_to_lip_dist(p6,p14,p17,p19))
-    features.append(nose_to_lip_dist_lip_height_ratio(p14,p17,p18))
+    # features.append(nose_to_lip_dist_lip_height_ratio(p14,p17,p18))
     return features
 
 def train_knn(num_neighbors,traindata,traintargets):

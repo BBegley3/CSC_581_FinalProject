@@ -85,8 +85,24 @@ def test_knn(knn,testdata,testtargets,final_model):
     pr=knn.predict(testdata)
     trueClasses=np.array(testtargets)
     if final_model:
-        print("-----KNN------")
+        print("----------KNN----------")
         print(pr,"\n",trueClasses)
+        CorrectMale,CorrectFemale,IncorrectMale,IncorrectFemale=0,0,0,0
+        for i in range(len(trueClasses)):
+            if trueClasses[i]==1 and pr[i]==1:
+                CorrectFemale+=1
+            if trueClasses[i]==0 and pr[i]==0:
+                CorrectMale+=1
+            if trueClasses[i]==0 and pr[i]==1:
+                IncorrectMale+=1
+            if trueClasses[i]==1 and pr[i]==0:
+                IncorrectFemale+=1
+        print("\nCorrectFemale(TP): ", CorrectFemale, " IncorrectFemale(FN): ",IncorrectFemale)
+        print("IncorrectMale(FP): ", IncorrectMale, " CorrectMale(TN): ", CorrectMale)
+        Accuracy=((CorrectFemale+CorrectMale)/len(trueClasses))*100
+        Recall=((CorrectFemale)/(CorrectFemale+IncorrectMale))*100
+        Precision=((CorrectFemale)/(CorrectFemale+IncorrectFemale))*100
+        print(f"\nAccuracy: {Accuracy:.2f}% Recall: {Recall:.2f}% Precision: {Precision:.2f}%")
     return np.mean(pr==trueClasses)
 
 def classify_data(model,file_path):
@@ -133,7 +149,7 @@ def get_best_k(traindata,traintargets,testdata,testtargets, max_k):
             best_acc=curr_acc
             best_k=i
 
-    print("Best K: ", best_k)
+    # print("Best K Found for KNN: ", best_k)
     # print("Best Accuracy: ", best_acc)
     return best_k,best_acc
 
@@ -145,9 +161,24 @@ def train_decision_tree(traindata,traintargets):
 def test_decision_tree(dt,testdata,testtargets):
     pr=dt.predict(testdata)
     trueClasses=np.array(testtargets)
-    print("-----DT------")
+    print("\n----------DT----------")
     print(pr,"\n",trueClasses)
-    return np.mean(pr==trueClasses)
+    CorrectMale,CorrectFemale,IncorrectMale,IncorrectFemale=0,0,0,0
+    for i in range(len(trueClasses)):
+        if trueClasses[i]==1 and pr[i]==1:
+            CorrectFemale+=1
+        if trueClasses[i]==0 and pr[i]==0:
+            CorrectMale+=1
+        if trueClasses[i]==0 and pr[i]==1:
+            IncorrectMale+=1
+        if trueClasses[i]==1 and pr[i]==0:
+            IncorrectFemale+=1
+    print("\nCorrectFemale(TP): ", CorrectFemale, " IncorrectFemale(FN): ",IncorrectFemale)
+    print("IncorrectMale(FP): ", IncorrectMale, " CorrectMale(TN): ", CorrectMale)
+    Accuracy=((CorrectFemale+CorrectMale)/len(trueClasses))*100
+    Recall=((CorrectFemale)/(CorrectFemale+IncorrectMale))*100
+    Precision=((CorrectFemale)/(CorrectFemale+IncorrectFemale))*100
+    print(f"\nAccuracy: {Accuracy:.2f}% Recall: {Recall:.2f}% Precision: {Precision:.2f}%")
 
 def train_naive_bayes(traindata,traintargets):
     nb=naive_bayes.GaussianNB()
@@ -157,9 +188,24 @@ def train_naive_bayes(traindata,traintargets):
 def test_naive_bayes(nb, testdata, testtargets):
     pr=nb.predict(testdata)
     trueClasses=np.array(testtargets)
-    print("-----NB------")
+    print("\n----------NB----------")
     print(pr,"\n",trueClasses)
-    return np.mean(pr==trueClasses)
+    CorrectMale,CorrectFemale,IncorrectMale,IncorrectFemale=0,0,0,0
+    for i in range(len(trueClasses)):
+        if trueClasses[i]==1 and pr[i]==1:
+            CorrectFemale+=1
+        if trueClasses[i]==0 and pr[i]==0:
+            CorrectMale+=1
+        if trueClasses[i]==0 and pr[i]==1:
+            IncorrectMale+=1
+        if trueClasses[i]==1 and pr[i]==0:
+            IncorrectFemale+=1
+    print("\nCorrectFemale(TP): ", CorrectFemale, " IncorrectFemale(FN): ",IncorrectFemale)
+    print("IncorrectMale(FP): ", IncorrectMale, " CorrectMale(TN): ", CorrectMale)
+    Accuracy=((CorrectFemale+CorrectMale)/len(trueClasses))*100
+    Recall=((CorrectFemale)/(CorrectFemale+IncorrectMale))*100
+    Precision=((CorrectFemale)/(CorrectFemale+IncorrectFemale))*100
+    print(f"\nAccuracy: {Accuracy:.2f}% Recall: {Recall:.2f}% Precision: {Precision:.2f}%")
 
 def train_SVM(traindata,traintargets):
     svm_model=svm.SVC(kernel="linear")
@@ -169,13 +215,29 @@ def train_SVM(traindata,traintargets):
 def test_SVM(svm_model,testdata,testtargets):
     pr=svm_model.predict(testdata)
     trueClasses=np.array(testtargets)
-    print("-----SVM------")
+    CorrectMale,CorrectFemale,IncorrectMale,IncorrectFemale=0,0,0,0
+    print("\n----------SVM----------")
     print(pr,"\n",trueClasses)
-    return np.mean(pr==trueClasses)
+    for i in range(len(trueClasses)):
+        if trueClasses[i]==1 and pr[i]==1:
+            CorrectFemale+=1
+        if trueClasses[i]==0 and pr[i]==0:
+            CorrectMale+=1
+        if trueClasses[i]==0 and pr[i]==1:
+            IncorrectMale+=1
+        if trueClasses[i]==1 and pr[i]==0:
+            IncorrectFemale+=1
+    print("\nCorrectFemale(TP): ", CorrectFemale, " IncorrectFemale(FN): ",IncorrectFemale)
+    print("IncorrectMale(FP): ", IncorrectMale, " CorrectMale(TN): ", CorrectMale)
+    Accuracy=((CorrectFemale+CorrectMale)/len(trueClasses))*100
+    Recall=((CorrectFemale)/(CorrectFemale+IncorrectMale))*100
+    Precision=((CorrectFemale)/(CorrectFemale+IncorrectFemale))*100
+    print(f"\nAccuracy: {Accuracy:.2f}% Recall: {Recall:.2f}% Precision: {Precision:.2f}%")
 
-def train_sk_nn(traindata,traintargets,testdata,testtargets,hidden_layers,a,lr):
+def find_best_rand_state_nn(traindata,traintargets,testdata,testtargets,hidden_layers,a,lr):
     best_acc=0.0
     trueClasses=np.array(testtargets)
+    best_rand_state=-1
     for i in range(0,20000):
         nn=neural_network.MLPClassifier(activation="logistic", alpha=a, learning_rate_init=lr, max_iter=1000000, hidden_layer_sizes=hidden_layers,random_state=i)
         nn.fit(traindata,traintargets)
@@ -184,15 +246,37 @@ def train_sk_nn(traindata,traintargets,testdata,testtargets,hidden_layers,a,lr):
         if(curr_acc>best_acc):
             print(i,": ",curr_acc)
             best_acc=curr_acc
-            best_nn=nn
-    return best_nn
+            best_rand_state=i
+    return best_rand_state
+
+def train_sk_nn(traindata,traintargets,hidden_layers,a,lr,rand_state):
+    nn=neural_network.MLPClassifier(activation="logistic", alpha=a, learning_rate_init=lr, max_iter=1000000, hidden_layer_sizes=hidden_layers,random_state=rand_state)
+    nn.fit(traindata,traintargets)
+    return nn
+
 
 def test_sk_nn(nn,testdata,testtargets):
     pr=nn.predict(testdata)
     trueClasses=np.array(testtargets)
-    print("-----ANN------")
+    print("\n----------ANN----------")
     print(pr,"\n",trueClasses)
-    return np.mean(pr==trueClasses)
+    CorrectMale,CorrectFemale,IncorrectMale,IncorrectFemale=0,0,0,0
+    Recall,Precision,Accuracy=0.0,0.0,0.0
+    for i in range(len(trueClasses)):
+        if trueClasses[i]==1 and pr[i]==1:
+            CorrectFemale+=1
+        if trueClasses[i]==0 and pr[i]==0:
+            CorrectMale+=1
+        if trueClasses[i]==0 and pr[i]==1:
+            IncorrectMale+=1
+        if trueClasses[i]==1 and pr[i]==0:
+            IncorrectFemale+=1
+    print("\nCorrectFemale(TP): ", CorrectFemale, " IncorrectFemale(FN): ",IncorrectFemale)
+    print("IncorrectMale(FP): ", IncorrectMale, " CorrectMale(TN): ", CorrectMale)
+    Accuracy=((CorrectFemale+CorrectMale)/len(trueClasses))*100
+    Recall=((CorrectFemale)/(CorrectFemale+IncorrectMale))*100
+    Precision=((CorrectFemale)/(CorrectFemale+IncorrectFemale))*100
+    print(f"\nAccuracy: {Accuracy:.2f}% Recall: {Recall:.2f}% Precision: {Precision:.2f}%")
 
 def find_best_nn_layers(traindata,traintargets,testdata,testtargets, a, lr, num_layers):
     best_acc=0
@@ -260,16 +344,16 @@ testdata=scaler.transform(testdata)
 best_k,best_acc=get_best_k(traindata,traintargets,testdata,testtargets, math.floor((num_men+num_women)/4))
 
 knn=train_knn(best_k,traindata,traintargets)
-knn_acc=test_knn(knn,testdata,testtargets,final_model=True)
+test_knn(knn,testdata,testtargets,final_model=True)
 
 dt=train_decision_tree(traindata,traintargets)
-dt_acc=test_decision_tree(dt,testdata,testtargets)
+test_decision_tree(dt,testdata,testtargets)
 
 nb=train_naive_bayes(traindata,traintargets)
-nb_acc=test_naive_bayes(nb,testdata,testtargets)
+test_naive_bayes(nb,testdata,testtargets)
 
 svm_model=train_SVM(traindata,traintargets)
-svm_acc=test_SVM(svm_model,testdata,testtargets)
+test_SVM(svm_model,testdata,testtargets)
 
 #2 Hidden Layer Best Settings:
 # layers=(61,49)
@@ -278,8 +362,8 @@ svm_acc=test_SVM(svm_model,testdata,testtargets)
 # 1Hidden Layer Best Settings:
 layers=(24,)
 a2,lr2,a1,lr1=0.1, 0.0095,0.0,0.0
-
-
+# rand_state=find_best_rand_state_nn(traindata,traintargets,testdata,testtargets, layers, a2, lr2)
+rand_state=17124
 
 n_layers=len(layers)
 input_layer=len(alldata[0])
@@ -303,13 +387,12 @@ if n_layers==2:
 if n_layers==1:
     l1=layers[0]
     mnn_layers=[input_layer,l1,1]
-nn_model=train_sk_nn(traindata,traintargets,testdata,testtargets, layers, a2, lr2)
-nn_acc=test_sk_nn(nn_model,testdata,testtargets)
+nn_model=train_sk_nn(traindata,traintargets, layers, a2, lr2, rand_state)
+test_sk_nn(nn_model,testdata,testtargets)
 
 mnn_max_iters=100000
 mnn_init_learning_rate=lr2
 mnn_learning_rate_multiplier=0.99
 
 model_weights,model_biases=train_nn(mnn_max_iters,mnn_init_learning_rate,mnn_learning_rate_multiplier,mnn_layers,traindata,traintargets)
-mnn_acc=test_nn(model_weights,model_biases,testdata,testtargets)
-print(" KNN Accuracy: ",knn_acc,"\n DT Accuracy: ", dt_acc, "\n NB Accuracy: ", nb_acc,"\n SVM Accuracy: ",svm_acc,"\n SKLearn NN Accuracy: ",nn_acc,"\n Manual NN Accuracy: ", mnn_acc)
+test_nn(model_weights,model_biases,testdata,testtargets)

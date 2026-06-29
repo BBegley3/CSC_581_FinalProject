@@ -14,10 +14,27 @@ def test_nn(weights,biases,testdata,testtargets):
     predicted_classes=[1 if prediction >=0.5 else 0 for prediction in predictions]
     predicted_classes=np.array(predicted_classes)
     correct_predictions=np.sum(predicted_classes==testtargets.flatten())
-    print("-----Manual ANN------")
+    print("\n-----Manual ANN------")
     print(predicted_classes,"\n", testtargets.flatten())
     accuracy=((correct_predictions/len(testtargets))*100)
-    return accuracy
+    CorrectMale,CorrectFemale,IncorrectMale,IncorrectFemale=0,0,0,0
+    trueClasses=testtargets
+    pr=predicted_classes
+    for i in range(len(trueClasses)):
+        if trueClasses[i]==1 and pr[i]==1:
+            CorrectFemale+=1
+        if trueClasses[i]==0 and pr[i]==0:
+            CorrectMale+=1
+        if trueClasses[i]==0 and pr[i]==1:
+            IncorrectMale+=1
+        if trueClasses[i]==1 and pr[i]==0:
+            IncorrectFemale+=1
+    print("\nCorrectFemale(TP): ", CorrectFemale, " IncorrectFemale(FN): ",IncorrectFemale)
+    print("IncorrectMale(FP): ", IncorrectMale, " CorrectMale(TN): ", CorrectMale)
+    Accuracy=((CorrectFemale+CorrectMale)/len(trueClasses))*100
+    Recall=((CorrectFemale)/(CorrectFemale+IncorrectMale))*100
+    Precision=((CorrectFemale)/(CorrectFemale+IncorrectFemale))*100
+    print(f"\nAccuracy: {Accuracy:.2f}% Recall: {Recall:.2f}% Precision: {Precision:.2f}%")
 
 
 def train_nn(iterations,init_learning_rate,learn_multiplier,layers,traindata,traintargets):

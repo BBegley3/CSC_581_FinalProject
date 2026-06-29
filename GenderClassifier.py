@@ -1,6 +1,7 @@
 from extractingFeatures import *
 import os
 import math
+import csv
 from sklearn import neighbors,svm,tree,naive_bayes,neural_network, preprocessing, model_selection,metrics
 import numpy as np
 from Manual_ANN import train_nn,test_nn
@@ -13,6 +14,7 @@ def setup_data(dataset_path=DATASET_PATH):
     num_women=0
     alldata=[]
     alltargets=[]
+    allfilenames=[]
     for folder in sorted(os.listdir(dataset_path)):
         folder_path = os.path.join(dataset_path, folder)
         if os.path.isdir(folder_path):
@@ -22,13 +24,37 @@ def setup_data(dataset_path=DATASET_PATH):
                     file_path = os.path.join(folder_path, file)
                     # print("Processing " + file_path)
                     alldata.append(extract_features(file_path=file_path))
+                    allfilenames.append(file_path)
                     if file.startswith("m"):
                         alltargets.append(0)
                         num_men+=1
                     elif file.startswith("w"):
                         alltargets.append(1)
                         num_women+=1
-    return alldata,alltargets,num_men,num_women
+    return alldata,alltargets,num_men,num_women,allfilenames
+
+FEATURE_NAMES = [
+    "eye_length_ratio",
+    "eye_dist_ratio",
+    "nose_ratio",
+    "lip_size_ratio",
+    "lip_length_ratio",
+    "eyebrow_length_ratio",
+    "aggresive_ratio",
+    "jaw_eye_ratio",
+    "forehead_jaw_ratio",
+    "nose_to_lip_dist",
+    "nose_to_lip_dist_lip_height_ratio",
+]
+
+def save_feature_report(alldata, alltargets, allfilenames, output_path="feature_values_report.csv"):
+    label_map = {0: "male", 1: "female"}
+    with open(output_path, "w", newline="") as f:
+        writer = csv.writer(f)
+        writer.writerow(["sample_number", "file_name", "class_label"] + FEATURE_NAMES)
+        for i, (features, label, filepath) in enumerate(zip(alldata, alltargets, allfilenames)):
+            writer.writerow([i + 1, os.path.basename(filepath), label_map[label]] + features)
+    print(f"[INFO] Feature report saved -> {output_path}  ({len(alldata)} samples, {len(FEATURE_NAMES)} features)")
 
 def extract_features(file_path):
     features=[]
@@ -333,7 +359,8 @@ def find_best_alpha_and_learning_rate_init(traindata,traintargets,testdata,testt
     print(best_acc)
     return best_alpha,best_learn_r
 
-alldata,alltargets,num_men,num_women=setup_data(DATASET_PATH)
+alldata,alltargets,num_men,num_women,allfilenames=setup_data(DATASET_PATH)
+save_feature_report(alldata, alltargets, allfilenames, output_path="feature_values_report.csv")
 traindata,traintargets,testdata,testtargets=split_data(TRAINING_PERCENTAGE,alldata,alltargets,num_men,num_women)
 
 
